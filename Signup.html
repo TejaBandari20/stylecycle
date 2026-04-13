@@ -247,7 +247,7 @@ button:hover {
             const mobile = e.target.mobile.value;
 
             try {
-                const response = await fetch('/signup', { 
+                const response = await fetch('http://51.20.181.96:5000/signup', { 
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password, username, mobile }),
