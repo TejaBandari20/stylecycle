@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Donation App</title>
+<style>
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body and background */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f6f8ff, #dfe9f3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding-top: 120px;
+}
+
+/* Header */
+header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    padding: 20px 0;
+    text-align: center;
+    z-index: 10;
+}
+
+header h1 {
+    font-size: 30px;
+    color: #1d3557;
+    margin-bottom: 5px;
+}
+
+header nav ul {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+}
+
+header nav a {
+    text-decoration: none;
+    color: #1d3557;
+    font-weight: 600;
+    transition: color 0.3s;
+}
+
+header nav a:hover {
+    color: #457b9d;
+}
+
+/* Form container */
+.form-section {
+    background: white;
+    padding: 40px 30px;
+    border-radius: 15px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 420px;
+    animation: fadeIn 0.8s ease-in-out;
+    text-align: center;
+}
+
+.form-section h2 {
+    margin-bottom: 25px;
+    color: #2c3e50;
+    font-size: 28px;
+}
+
+/* Input fields */
+.form-section input {
+    width: 100%;
+    padding: 14px;
+    margin: 12px 0 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    font-size: 15px;
+    transition: border 0.3s;
+}
+
+.form-section input:focus {
+    border-color: #457b9d;
+    outline: none;
+}
+
+/* Submit button */
+.form-section button {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #457b9d, #1d3557);
+    color: white;
+    font-size: 16px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.form-section button:hover {
+    background: linear-gradient(135deg, #1d3557, #457b9d);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+/* Footer */
+footer {
+    margin-top: 60px;
+    text-align: center;
+    color: #777;
+    font-size: 14px;
+    padding: 20px 10px;
+}
+
+/* Message styles */
+.message {
+    margin-top: 15px;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .form-section {
+        padding: 30px 20px;
+    }
+
+    header h1 {
+        font-size: 24px;
+    }
+}
+
+</style>
+     </head>
+<body>
+    <header>
+        <div class="container">
+
+            <center><svg width="280" height="80" viewBox="0 0 320 100" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .highlight { font: bold 36px 'Poppins', sans-serif; fill: #050505; }
+    .text-white { font: bold 36px 'Poppins', sans-serif; fill: #0d0d0d; }
+    .hanger { stroke: #ddab15; stroke-width: 4; fill: none; }
+  </style>
+
+  <!-- Hanger inside a circular loop -->
+  <circle cx="50" cy="50" r="40" stroke="#ddab15" stroke-width="4" fill="none" />
+  <path d="M30 45 Q50 20, 70 45 L50 70 Z" class="hanger"/>
+  <circle cx="50" cy="35" r="3" fill="#ddab15" />
+
+  <!-- Brand Text -->
+  <text x="100" y="60">
+    <tspan class="highlight">Re</tspan>
+    <tspan class="text-white">Wear</tspan>
+  </text>
+</svg></center>
+            <nav>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/Signup">Sign Up</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="form-section">
+            <h2>User Login</h2>
+            <form id="loginForm">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+
+                <button type="submit">Login</button>
+            </form>
+            <p id="loginMessage" class="message"></p>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Donation App. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // IMPORTANT: Replace with your deployed backend URL
+        const API_BASE_URL = 'http://localhost:5000'; // Example: 'http://YOUR_EC2_PUBLIC_IP:5000' or 'https://api.yourdomain.com'
+
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const messageElement = document.getElementById('loginMessage');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('jwtToken', data.token); // Store the token
+                    messageElement.textContent = 'Login successful! Redirecting...';
+                    messageElement.style.color = 'green';
+                    setTimeout(() => {
+                        window.location.href = '/Home'; // Redirect to user home page
+                    }, 1000);
+                } else {
+                    messageElement.textContent = data.message || 'Login failed. Please check your credentials.';
+                    messageElement.style.color = 'red';
+                }
+            } catch (error) {
+                console.error('Error during login:', error);
+                messageElement.textContent = 'An error occurred during login. Please try again later.';
+                messageElement.style.color = 'red';
+            }
+        });
+    </script>
+</body>
+</html>

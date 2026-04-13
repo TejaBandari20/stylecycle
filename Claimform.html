@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Claim Donation - ReWear</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f6f8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .form-container {
+            background-color: #ffffff;
+            padding: 2.5rem 3rem;
+            border-radius: 16px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 480px;
+            border: 1px solid #e0e0e0;
+        }
+
+        h2 {
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.9rem;
+            margin-bottom: 2rem;
+            color: #2c3e50;
+        }
+
+        form {
+            display: grid;
+            gap: 1.2rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            color: #34495e;
+        }
+
+        input[type="text"],
+        input[type="tel"],
+        input[type="email"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 1.5px solid #ccc;
+            background-color: #fafafa;
+            color: #2c3e50;
+            transition: border-color 0.3s ease, background-color 0.3s ease;
+        }
+
+        /* Style for read-only fields - REINSTATED FOR MOBILE & EMAIL */
+        input[readonly],
+        textarea[readonly] {
+            background-color: #e9ecef; /* Light gray to indicate it's not editable */
+            cursor: not-allowed;
+            opacity: 0.8; /* Slightly dim it to visually indicate non-editability */
+        }
+
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            border-color: #3b82f6;
+            background-color: #fff;
+            outline: none;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        button {
+            margin-top: 1rem;
+            width: 100%;
+            padding: 12px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        button:hover {
+            background-color: #2563eb;
+        }
+
+        button:active {
+            background-color: #1d4ed8;
+        }
+
+        .note {
+            margin-top: 1.2rem;
+            font-size: 0.85rem;
+            text-align: center;
+            color: #6b7280;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 480px) {
+            .form-container {
+                padding: 2rem;
+            }
+
+            h2 {
+                font-size: 1.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <section class="form-container" aria-labelledby="formTitle">
+        <h2 id="formTitle">Claim Donation</h2>
+        <form id="claimForm" novalidate>
+            <div>
+                <label for="name">Name</label>
+                <input id="name" name="name" type="text" required placeholder="Your registered name" />
+            </div>
+
+            <div>
+                <label for="mobile">Mobile Number</label>
+                <input id="mobile" name="mobile" type="tel" pattern="^\d{10}$" required readonly placeholder="Your registered 10-digit mobile number" />
+            </div>
+
+            <div>
+                <label for="email">Mail Id</label>
+                <input id="email" name="email" type="email" required readonly placeholder="Your registered email@example.com" />
+            </div>
+
+            <div>
+                <label for="address">Address (for this claim)</label>
+                <textarea id="address" name="address" required placeholder="Your address for this claim"></textarea>
+            </div>
+
+            <div>
+                <label for="state">State</label>
+                <select id="state" name="state" required>
+                    <option value="" disabled selected>Select your state</option>
+                    <option value="AN">Andaman and Nicobar Islands</option>
+                    <option value="AP">Andhra Pradesh</option>
+                    <option value="AR">Arunachal Pradesh</option>
+                    <option value="AS">Assam</option>
+                    <option value="BR">Bihar</option>
+                    <option value="CH">Chandigarh</option>
+                    <option value="CT">Chhattisgarh</option>
+                    <option value="DN">Dadra and Nagar Haveli</option>
+                    <option value="DD">Daman and Diu</option>
+                    <option value="DL">Delhi</option>
+                    <option value="GA">Goa</option>
+                    <option value="GJ">Gujarat</option>
+                    <option value="HR">Haryana</option>
+                    <option value="HP">Himachal Pradesh</option>
+                    <option value="JK">Jammu and Kashmir</option>
+                    <option value="JH">Jharkhand</option>
+                    <option value="KA">Karnataka</option>
+                    <option value="KL">Kerala</option>
+                    <option value="LA">Ladakh</option>
+                    <option value="LD">Lakshadweep</option>
+                    <option value="MP">Madhya Pradesh</option>
+                    <option value="MH">Maharashtra</option>
+                    <option value="MN">Manipur</option>
+                    <option value="ML">Meghalaya</option>
+                    <option value="MZ">Mizoram</option>
+                    <option value="NL">Nagaland</option>
+                    <option value="OR">Odisha</option>
+                    <option value="PY">Puducherry</option>
+                    <option value="PB">Punjab</option>
+                    <option value="RJ">Rajasthan</option>
+                    <option value="SK">Sikkim</option>
+                    <option value="TN">Tamil Nadu</option>
+                    <option value="TS">Telangana</option>
+                    <option value="TR">Tripura</option>
+                    <option value="UP">Uttar Pradesh</option>
+                    <option value="UK">Uttarakhand</option>
+                    <option value="WB">West Bengal</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="reasonForClaim">Reason for Claiming (Optional)</label>
+                <textarea id="reasonForClaim" name="reasonForClaim" placeholder="Tell the donor why you need this item or any special notes."></textarea>
+            </div>
+
+            <input type="hidden" id="donationId" name="donationId" />
+
+            <button type="submit">Submit Claim</button>
+        </form>
+        <p class="note">Your registered details will be shared with the donor. Address and state are for this specific claim.</p>
+    </section>
+
+    <script>
+        // IMPORTANT: Replace with your deployed backend URL
+        const API_BASE_URL = 'http://localhost:5000'; // Example: 'http://YOUR_EC2_PUBLIC_IP:5000' or 'https://api.yourdomain.com'
+
+        const form = document.getElementById('claimForm');
+        const urlParams = new URLSearchParams(window.location.search);
+        const donationId = urlParams.get('donationId');
+        const token = localStorage.getItem('jwtToken');
+
+        // Populate donationId (hidden field)
+        if (donationId) {
+            document.getElementById('donationId').value = donationId;
+        } else {
+            alert('Donation ID not found. Please try claiming from the Home page.');
+            window.location.href = '/Home';
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!token) {
+                alert('You must be logged in to claim an item. Redirecting to login.');
+                window.location.href = '/Login';
+                return;
+            }
+            await fetchAndPreFillUserDetails();
+        });
+
+        async function fetchAndPreFillUserDetails() {
+            try {
+                // Fetch user profile details
+                const response = await fetch(`${API_BASE_URL}/api/user-profile`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const user = await response.json();
+                    // 'name' is now editable, but pre-filled
+                    document.getElementById('name').value = user.username || '';
+                    // 'mobile' and 'email' are readonly, pre-filled
+                    document.getElementById('mobile').value = user.Mobile || '';
+                    document.getElementById('email').value = user.Email || '';
+                } else {
+                    const errorData = await response.json();
+                    alert(`Failed to fetch user details: ${errorData.message}. Please log in again.`);
+                    window.location.href = '/Login';
+                }
+            } catch (error) {
+                console.error('Error fetching user details:', error);
+                alert('An error occurred while fetching your details. Please try again or log in.');
+                window.location.href = '/Login';
+            }
+        }
+
+        form.addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            // Mobile number pattern check (still applies even if read-only, as a safeguard)
+            const mobileInput = form.mobile;
+            const mobilePattern = /^\d{10}$/;
+            if (!mobilePattern.test(mobileInput.value)) {
+                alert('Please enter a valid 10-digit mobile number.');
+                mobileInput.focus(); // This focus might not work well on a readonly field, but kept for logic.
+                return;
+            }
+
+            const data = {
+                donationId: document.getElementById('donationId').value,
+                // 'name' is now taken from the (potentially edited) input field
+                claimerUsername: document.getElementById('name').value,
+                // 'mobile' and 'email' are taken from the pre-filled (readonly) input fields
+                claimerMobile: document.getElementById('mobile').value,
+                claimerEmail: document.getElementById('email').value,
+                address: document.getElementById('address').value,
+                state: document.getElementById('state').value,
+                reasonForClaim: document.getElementById('reasonForClaim').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/claim`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` // Include JWT token
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                if (response.ok) {
+                    alert('Claim submitted successfully! Thank you. Redirecting to your submissions...');
+                    window.location.href = '/Submissions.html'; // Redirect to submissions to see status
+                } else {
+                    const errorData = await response.json();
+                    alert(`Failed to submit claim: ${errorData.message}`);
+                }
+            } catch (error) {
+                console.error('Error during claim submission:', error);
+                alert('An error occurred during claim submission. Please try again.');
+            }
+        });
+    </script>
+</body>
+</html>

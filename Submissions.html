@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Submissions - ReWear</title>
+    <link rel="stylesheet" href="/static/style.css" />
+    <style>
+        /* General Body and Container Styles - Keep existing for submission content */
+        body {
+            font-family: 'Inter', sans-serif; /* Keep Inter for overall body */
+            margin: 0;
+            padding: 0; /* Changed from 0 to 0 for consistency with userhome */
+            background-color: #f4f7f6; /* Light grey background from userhome */
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 90%; /* From userhome */
+            max-width: 1200px; /* From userhome */
+            margin: 0 auto;
+            padding: 20px; /* From userhome */
+            background-color: #fff; /* Keep for main content area */
+            border-radius: 12px; /* Keep for main content area */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Keep for main content area */
+        }
+
+        /* Header Styles - THIS IS THE EXACT STYLE FROM YOUR IMAGE */
+        header {
+            background-color: #2c3e50; /* Dark blue-grey, as in your image */
+            color: #2c3e50; /* Light text (white-ish), as in your image */
+            padding: 1rem 0;
+            border-bottom: 5px solid #3498db; /* Blue accent, as in your image */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.2rem;
+            text-align: center;
+            padding-bottom: 10px;
+        }
+
+        header nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px; /* Space between nav items */
+        }
+
+        header nav ul li a {
+            color: #2c3e50; /* Light text (white-ish) for links, as in your image */
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1rem;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        header nav ul li a:hover,
+        header nav ul li a.active {
+            background-color: #3498db; /* Blue highlight on hover */
+            color: #ffffff; /* White text on hover */
+        }
+        /* End Header Styles */
+
+        /* Main Content Area */
+        main {
+            padding: 30px 0;
+            min-height: 70vh; /* Ensure content pushes footer down */
+        }
+
+        h1 { /* This H1 was specific to submissions. Renamed it to .page-title and adjusted */
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+            font-size: 2.2rem;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            padding: 10px 18px;
+            background-color: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-button:hover {
+            background-color: #2563eb;
+        }
+
+        .submissions-grid {
+            display: grid;
+            gap: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+
+        .donation-card {
+            background-color: #fdfdfd;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease;
+        }
+
+        .donation-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .donation-card h3 {
+            color: #3b82f6;
+            margin-top: 0;
+            margin-bottom: 0.8rem;
+            font-size: 1.5rem;
+        }
+
+        .donation-card p {
+            margin-bottom: 0.4rem;
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        .donation-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 1rem;
+            margin-bottom: 1.2rem;
+            display: block;
+        }
+
+        .claims-for-this-donation {
+            margin-top: 1.5rem;
+            border-top: 1px dashed #e0e0e0;
+            padding-top: 1.5rem;
+        }
+
+        .claims-for-this-donation h4 {
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .claim-item {
+            background-color: #f1f7fe; /* Lighter blue for claims */
+            border: 1px solid #cce0ff;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .claim-item p {
+            margin-bottom: 0.3rem;
+            font-size: 0.9rem;
+        }
+
+        .claim-item strong {
+            color: #0056b3;
+        }
+
+        .claim-actions {
+            margin-top: 0.8rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .claim-actions button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .accept-claim-btn {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .accept-claim-btn:hover {
+            background-color: #218838;
+        }
+
+        .reject-claim-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .reject-claim-btn:hover {
+            background-color: #c82333;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.3em 0.6em;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 0.5em;
+        }
+
+        .status-badge.pending { background-color: #ffc107; color: #343a40; }
+        .status-badge.accepted { background-color: #28a745; color: white; }
+        .status-badge.rejected { background-color: #dc3545; color: white; }
+        .status-badge.available { background-color: #17a2b8; color: white; }
+        .status-badge.claimed { background-color: #6f42c1; color: white; } /* Donation status once a claim is accepted */
+        .status-badge.delivered { background-color: #007bff; color: white; } /* Donation status once item delivered */
+
+        /* Footer Styles - Copied from Userhome.html */
+        footer {
+            background-color: #2c3e50;
+            color: #2c3e50;
+            text-align: center;
+            padding: 1rem 0;
+            margin-top: 40px;
+            border-top: 5px solid #3498db;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        footer p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        /* End Footer Styles */
+
+        /* Responsive Adjustments - Copied and slightly adjusted from Userhome.html */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+            header nav ul {
+                flex-direction: column;
+                gap: 10px;
+            }
+            header nav ul li a {
+                padding: 5px 10px;
+                font-size: 1rem;
+            }
+            .container {
+                width: 95%;
+                padding: 10px;
+            }
+            .submissions-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+                    <center>
+        <div class="container">
+            <svg width="280" height="80" viewBox="0 0 320 100" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .highlight { font: bold 36px 'Poppins', sans-serif; fill: #ddab15; }
+    .text-white { font: bold 36px 'Poppins', sans-serif; fill: #141414; }
+    .hanger { stroke: #ddab15; stroke-width: 4; fill: none; }
+  </style>
+
+  <!-- Hanger inside a circular loop -->
+  <circle cx="50" cy="50" r="40" stroke="#ddab15" stroke-width="4" fill="none" />
+  <path d="M30 45 Q50 20, 70 45 L50 70 Z" class="hanger"/>
+  <circle cx="50" cy="35" r="3" fill="#ddab15" />
+
+  <!-- Brand Text -->
+  <text x="100" y="60">
+    <tspan class="highlight">Re</tspan>
+    <tspan class="text-white">Wear</tspan>
+  </text>
+</svg>
+            <h1 id="welcomeUser">Welcome, Guest!</h1> <nav>
+                <ul>
+                    <li><a href="/Home">Public Feed</a></li>
+                    <li><a href="/Event">Donate Item</a></li>
+                    <li><a href="/Submissions.html" class="active">My Submissions</a></li>
+                    <li><a href="#" id="logoutButton">Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <h1 class="page-title">My Donations & Claims Received</h1>
+        <div id="submissions-container">
+            <p>Loading your submissions...</p>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Donation App. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <template id="claim-item-template">
+        <div class="claim-item">
+            <h4>Claim Details: <span class="status-badge claim-status-badge"></span></h4>
+            <p><strong>Claimer:</strong> <span class="claimer-name"></span></p>
+            <p><strong>Email:</strong> <span class="claimer-email"></span></p>
+            <p><strong>Mobile:</strong> <span class="claimer-mobile"></span></p>
+            <p><strong>Address:</strong> <span class="claimer-address"></span></p>
+            <p><strong>State:</strong> <span class="claimer-state"></span></p>
+            <p><strong>Reason:</strong> <span class="claim-reason"></span></p>
+            <p><strong>Claimed At:</strong> <span class="claimed-at"></span></p>
+            <div class="claim-actions">
+                <button class="accept-claim-btn" data-claim-id="" data-donation-id="">Accept</button>
+                <button class="reject-claim-btn" data-claim-id="" data-donation-id="">Reject</button>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5000'; // IMPORTANT: Update this for deployment
+        let currentUserId = null; // Declare globally as in userhome.html
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await validateAndDisplayUser(); // Call this to populate welcome message and currentUserId
+            await fetchMySubmissionsAndClaims();
+        });
+
+        // Add logout functionality
+        document.getElementById('logoutButton').addEventListener('click', () => {
+            localStorage.removeItem('jwtToken');
+            window.location.href = '/Login';
+        });
+
+        // Function to validate user and display name (copied from userhome.html)
+        async function validateAndDisplayUser() {
+            const token = localStorage.getItem('jwtToken');
+            const welcomeUserElement = document.getElementById('welcomeUser');
+
+            if (!token) {
+                welcomeUserElement.textContent = 'Welcome, Guest! (Please log in)';
+                setTimeout(() => {
+                    window.location.href = '/Login';
+                }, 1000);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/valid`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Check if data.name exists, otherwise it will show "undefined"
+                    welcomeUserElement.textContent = `Welcome, ${data.name || 'User'}!`; // Added fallback for undefined name
+                    currentUserId = data.userId;
+                } else {
+                    console.error('Token validation failed:', data.message);
+                    localStorage.removeItem('jwtToken');
+                    welcomeUserElement.textContent = 'Welcome, Guest! (Session expired, please log in)';
+                    setTimeout(() => {
+                        window.location.href = '/Login';
+                    }, 1000);
+                }
+            } catch (error) {
+                console.error('Error validating token:', error);
+                welcomeUserElement.textContent = 'Welcome, Guest! (Error validating session)';
+                localStorage.removeItem('jwtToken');
+                setTimeout(() => {
+                    window.location.href = '/Login';
+                }, 1000);
+            }
+        }
+
+        async function fetchMySubmissionsAndClaims() {
+            const token = localStorage.getItem('jwtToken'); // Get token here as well
+            if (!token) {
+                // This case is already handled by validateAndDisplayUser, but good to have a fallback
+                alert('You must be logged in to view your submissions. Redirecting to login.');
+                window.location.href = '/Login';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/my-submissions`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        alert('Session expired. Please log in again.');
+                        window.location.href = '/Login';
+                        return;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const donationsWithClaims = await response.json();
+                const submissionsContainer = document.getElementById('submissions-container');
+                submissionsContainer.innerHTML = ''; // Clear loading message
+
+                if (donationsWithClaims.length === 0) {
+                    submissionsContainer.innerHTML = '<p>You have not made any donations yet.</p>';
+                    return;
+                }
+
+                const submissionsGrid = document.createElement('div');
+                submissionsGrid.className = 'submissions-grid';
+                submissionsContainer.appendChild(submissionsGrid);
+
+
+                donationsWithClaims.forEach(donation => {
+                    const donationCard = document.createElement('div');
+                    donationCard.className = 'donation-card';
+                    donationCard.innerHTML = `
+                        <h3>${donation.title} <span class="status-badge ${donation.status}">${donation.status.charAt(0).toUpperCase() + donation.status.slice(1)}</span></h3>
+                        <p><strong>Description:</strong> ${donation.description}</p>
+                        <p><strong>Category:</strong> ${donation.category}</p>
+                        <p><strong>Quantity:</strong> ${donation.quantity}</p>
+                        <p><strong>Posted At:</strong> ${new Date(donation.postedAt).toLocaleString()}</p>
+                        ${donation.location && donation.location.latitude ? `<p><strong>Location:</strong> Lat: ${donation.location.latitude}, Lng: ${donation.location.longitude}</p>` : ''}
+                        ${donation.imageData ? `<img src="data:${donation.imageMimeType};base64,${donation.imageData}" alt="${donation.title}">` : ''}
+                        <h4>Claims for this Donation:</h4>
+                        <div class="claims-for-this-donation" id="claims-for-donation-${donation.donationId}">
+                            </div>
+                        `;
+                    submissionsGrid.appendChild(donationCard);
+
+                    const claimsContainer = document.getElementById(`claims-for-donation-${donation.donationId}`);
+
+                    if (donation.claims && donation.claims.length > 0) {
+                        donation.claims.forEach(claim => {
+                            const claimItemTemplate = document.getElementById('claim-item-template');
+                            const clone = document.importNode(claimItemTemplate.content, true);
+
+                            clone.querySelector('.claimer-name').textContent = claim.claimerUsername;
+                            clone.querySelector('.claimer-email').textContent = claim.claimerEmail;
+                            clone.querySelector('.claimer-mobile').textContent = claim.claimerMobile;
+                            clone.querySelector('.claimer-address').textContent = claim.claimerAddress;
+                            clone.querySelector('.claimer-state').textContent = claim.claimerState;
+                            clone.querySelector('.claim-reason').textContent = claim.reasonForClaim;
+                            clone.querySelector('.claimed-at').textContent = new Date(claim.claimedAt).toLocaleString();
+
+                            // Set claim status badge
+                            const claimStatusBadge = clone.querySelector('.claim-status-badge');
+                            claimStatusBadge.textContent = claim.claimStatus.charAt(0).toUpperCase() + claim.claimStatus.slice(1);
+                            claimStatusBadge.classList.add(claim.claimStatus);
+
+                            const acceptBtn = clone.querySelector('.accept-claim-btn');
+                            const rejectBtn = clone.querySelector('.reject-claim-btn');
+
+                            if (acceptBtn) {
+                                acceptBtn.dataset.claimId = claim.claimId;
+                                acceptBtn.dataset.donationId = donation.donationId;
+                                acceptBtn.addEventListener('click', () => handleClaimAction(claim.claimId, donation.donationId, 'accepted'));
+                            }
+                            if (rejectBtn) {
+                                rejectBtn.dataset.claimId = claim.claimId;
+                                rejectBtn.dataset.donationId = donation.donationId;
+                                rejectBtn.addEventListener('click', () => handleClaimAction(claim.claimId, donation.donationId, 'rejected'));
+                            }
+
+                            // Hide buttons if claim is not pending
+                            if (claim.claimStatus !== 'pending') {
+                                if (acceptBtn) acceptBtn.style.display = 'none';
+                                if (rejectBtn) rejectBtn.style.display = 'none';
+                            }
+
+                            claimsContainer.appendChild(clone);
+                        });
+                    } else {
+                        claimsContainer.innerHTML = '<p>No claims yet for this donation.</p>';
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error fetching my submissions and claims:', error);
+                alert('Failed to load your submissions and claims. Please try again.');
+            }
+        }
+
+        async function handleClaimAction(claimId, donationId, action) {
+            if (!confirm(`Are you sure you want to ${action} this claim?`)) {
+                return;
+            }
+
+            const token = localStorage.getItem('jwtToken'); // Get token here as well
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/claims/${action}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ claimId, donationId })
+                });
+
+                if (response.ok) {
+                    alert(`Claim ${action} successfully!`);
+                    // Reload submissions to reflect changes
+                    await fetchMySubmissionsAndClaims();
+                } else {
+                    const errorData = await response.json();
+                    alert(`Failed to ${action} claim: ${errorData.message}`);
+                }
+            } catch (error) {
+                console.error(`Error ${action} claim:`, error);
+                alert(`An error occurred while trying to ${action} the claim. Please try again.`);
+            }
+        }
+    </script>
+</body>
+</html>

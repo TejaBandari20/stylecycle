@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="./script.js"></script>
+    <title>Leaderboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #000;
+            color: #f1f1f1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+        }
+
+        header {
+            background-color: #111;
+            color: #fff;
+            padding: 1rem;
+            text-align: center;
+            width: 100%;
+            box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        main {
+            background-color: #1a1a1a;
+            width: 90%;
+            margin: 2rem 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+        }
+
+        h2 {
+            color: #f1c40f;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.5rem;
+        }
+
+        table th, table td {
+            padding: 12px 15px;
+            border: 1px solid #333;
+            text-align: left;
+            color: #f1f1f1;
+        }
+
+        table th {
+            background-color: #333;
+            color: #f1c40f;
+            border: 1px solid black;
+        }
+
+        table tr:nth-child(even) {
+            background-color: #222;
+        }
+
+        table tr:hover {
+            background-color: #444;
+        }
+
+        footer {
+            margin-top: auto;
+            padding: 1rem;
+            background-color: #111;
+            color: #fff;
+            text-align: center;
+            width: 100%;
+            box-shadow: 0 -4px 8px rgba(255, 255, 255, 0.1);
+        }
+
+        a {
+            color: #f1c40f;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        a:hover {
+            color: #ffd700;
+        }
+
+        .centered {
+            display: flex;
+            justify-content: center;
+        }
+        .select-mode {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1rem;
+            position: relative;
+            justify-self: right;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Leaderboard</h1>
+    </header>
+    <main>
+        <h2>Top Performers</h2>
+        <div class="select-mode">
+            <label for="filter">Choose Filter</label>
+            <select id="filter" name="filter" required onchange="filterData()">
+                <option value="Any" selected>Any</option>
+                <option value="English">English</option>
+                <option value="Assamese">Assamese</option>
+                <option value="Khasi">Khasi</option>
+                <option value="Manipuri">Manipuri</option>
+                <option value="Mizo">Mizo</option>
+            </select>
+        </div>
+        <div id="holder"></div>
+        <div class="centered">
+            <a href="/Home">Back to Home</a>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2024 Machine Translation Workshop</p>
+    </footer>
+    <script>
+        const holder = document.getElementById("holder");
+        let mode = 'Any'; 
+        let table = null;   
+        
+        const renderContent = (data, table) => {
+            table.innerHTML = ''; 
+            data.leaderboard.filter(user => mode === 'Any' || user.language === mode).forEach((user, index) => {
+                    const row = table.insertRow();
+                    row.innerHTML = `<td>${index + 1}</td><td>${user.name}</td>
+                        <td>${user.scores.avg_bleu_score}</td><td>${user.scores.avg_ter_score}</td><td>${user.scores.avg_chrf_score}</td>
+                        <td>${user.scores.avg_meteor_score}</td><td>${user.scores.avg_wer_score}</td><td>${user.scores.avg_edit_distance}</td>
+                        <td>${user.scores.corpus_bleu_score}</td><td>${user.scores.corpus_ter_score}</td><td>${user.scores.corpus_chrf_score}</td>`;
+                    const lang = table.insertRow();
+                    lang.innerHTML = `<td colspan="11"><center>${user.language ? user.language : 'null'}</center></td>`;
+                });
+        };
+        
+        const filterData = () => {
+            const select = document.getElementById('filter');
+            mode = select.value;
+            if (!data || !table) return;
+            renderContent(tempData, table);
+        };
+        
+        document.addEventListener("DOMContentLoaded", async () => {
+            const response = await fetch('/getLeaderBoard', { method: 'POST' });
+            const data = await response.json();
+            tempData = data;
+        
+            if (data.Empty) {
+                holder.innerHTML = `<center><h3>Leaderboard is empty</h3></center><br>`;
+            } else {
+                const tableDiv = document.createElement('div');
+                tableDiv.innerHTML = `
+                <table class='leaderboard'>
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>User</th>
+                            <th>BLEU Score</th>
+                            <th>TER Score</th>
+                            <th>ChrF Score</th>
+                            <th>METEOR Score</th>
+                            <th>WER Score</th>
+                            <th>Edit Distance</th>
+                            <th>Corpus BLEU Score</th>
+                            <th>Corpus TER Score</th>
+                            <th>Corpus ChrF Score</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>`;
+                holder.appendChild(tableDiv);
+                table = document.querySelector('.leaderboard tbody');
+                renderContent(data, table);
+            }
+        });
+        
+    </script>
+</body>
+</html>
