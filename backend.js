@@ -6,7 +6,7 @@ const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const AWS = require('aws-sdk');
 
-// AWS CONFIG
+// ================= AWS CONFIG =================
 AWS.config.update({ region: 'ap-south-1' });
 
 const dynamodb = new AWS.DynamoDB.DocumentClient();
@@ -14,18 +14,39 @@ const sns = new AWS.SNS();
 
 const SNS_TOPIC_ARN = "arn:aws:sns:ap-south-1:367553824826:stylecycle";
 
+// ================= APP CONFIG =================
 const app = express();
 const PORT = 5000;
 
 app.use(cors());
+
+// ✅ BODY PARSER
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ================= STATIC =================
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'home.html')));
-app.get('/Signup', (req, res) => res.sendFile(path.join(__dirname, 'Signup.html')));
-app.get('/Login', (req, res) => res.sendFile(path.join(__dirname, 'Login.html')));
-app.get('/Home', (req, res) => res.sendFile(path.join(__dirname, 'userhome.html')));
+// ✅ 🔥 IMPORTANT FIX (STATIC FILES)
+app.use(express.static(__dirname));
+
+// ================= STATIC ROUTES =================
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'home.html'));
+});
+
+app.get('/Signup', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Signup.html'));
+});
+
+app.get('/Login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Login.html'));
+});
+
+app.get('/Home', (req, res) => {
+    res.sendFile(path.join(__dirname, 'userhome.html'));
+});
+
+app.get('/EventRegister', (req, res) => {
+    res.sendFile(path.join(__dirname, 'EventRegister.html'));
+});
 
 // ================= SIGNUP =================
 app.post('/signup', async (req, res) => {
@@ -53,7 +74,7 @@ app.post('/signup', async (req, res) => {
 
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Error in signup" });
+        res.status(500).json({ message: "Signup error" });
     }
 });
 
@@ -74,7 +95,6 @@ app.post('/login', async (req, res) => {
             return res.status(400).json({ message: "Wrong password" });
         }
 
-        // 👉 NO JWT → just send user
         res.json({
             message: "Login success",
             userId: user.UserId,
@@ -94,7 +114,7 @@ app.post('/api/donate', upload.single('image'), async (req, res) => {
     try {
         const donation = {
             donationId: uuidv4(),
-            userId: req.body.userId, // 👈 from frontend
+            userId: req.body.userId,
             title: req.body.title,
             description: req.body.description,
             category: req.body.category,
@@ -122,8 +142,12 @@ app.post('/api/donate', upload.single('image'), async (req, res) => {
 
 // ================= GET POSTS =================
 app.get('/api/posts', async (req, res) => {
-    const data = await dynamodb.scan({ TableName: 'Donations' }).promise();
-    res.json(data.Items);
+    try {
+        const data = await dynamodb.scan({ TableName: 'Donations' }).promise();
+        res.json(data.Items);
+    } catch (err) {
+        res.status(500).json({ message: "Error fetching posts" });
+    }
 });
 
 // ================= CLAIM =================
@@ -155,5 +179,5 @@ app.post('/api/claim', async (req, res) => {
 
 // ================= SERVER =================
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on ${PORT}`);
+    console.log(`Server running on http://0.0.0.0:${PORT}`);
 });
