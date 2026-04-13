@@ -1,3 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Signup</title>
+</head>
+
+<body>
+
+<h2>Signup</h2>
+
+<form id="signuppost">
+    <input type="text" id="name" placeholder="Username" required><br><br>
+    <input type="email" id="email" placeholder="Email" required><br><br>
+    <input type="password" id="password" placeholder="Password" required><br><br>
+    <input type="text" id="mobile" placeholder="Mobile" required><br><br>
+
+    <button type="submit">Signup</button>
+</form>
+
+<!-- ✅ SCRIPT AT BOTTOM -->
 <script>
 const API_BASE_URL = "http://51.20.181.96:5000";
 
@@ -9,21 +29,29 @@ document.getElementById('signuppost').addEventListener('submit', async (e) => {
     const password = document.getElementById('password').value;
     const mobile = document.getElementById('mobile').value;
 
-    const res = await fetch(`${API_BASE_URL}/signup`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ username, email, password, mobile })
-    });
+    try {
+        const res = await fetch(`${API_BASE_URL}/signup`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ username, email, password, mobile })
+        });
 
-    const data = await res.json();
+        const data = await res.json();
 
-    if (res.ok) {
-        alert("Signup successful ✅");
-        window.location.href = "/Login";
-    } else {
-        alert(data.message);
+        if (res.ok) {
+            alert("Signup successful ✅");
+            window.location.href = "/Login";
+        } else {
+            alert(data.message);
+        }
+
+    } catch (err) {
+        alert("Network error ❌");
     }
 });
 </script>
+
+</body>
+</html>
