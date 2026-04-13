@@ -7,43 +7,48 @@ const { v4: uuidv4 } = require('uuid');
 const AWS = require('aws-sdk');
 
 // ================= AWS CONFIG =================
-AWS.config.update({ region: 'ap-south-1' });
+AWS.config.update({ region: 'eu-north-1' }); // 🔥 IMPORTANT (your region)
 
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 const sns = new AWS.SNS();
 
-const SNS_TOPIC_ARN = "arn:aws:sns:ap-south-1:367553824826:stylecycle";
+// 👉 Replace with your actual SNS ARN (same region)
+const SNS_TOPIC_ARN = "arn:aws:sns:eu-north-1:367553824826:stylecycle";
 
-// ================= APP CONFIG =================
+// ================= APP =================
 const app = express();
 const PORT = 5000;
 
 app.use(cors());
-
-// ✅ BODY PARSER
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ 🔥 IMPORTANT FIX (STATIC FILES)
+// ✅ STATIC FIX (VERY IMPORTANT)
 app.use(express.static(__dirname));
 
-// ================= STATIC ROUTES =================
+// ================= ROUTES =================
+
+// Home
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'home.html'));
 });
 
+// Signup page
 app.get('/Signup', (req, res) => {
     res.sendFile(path.join(__dirname, 'Signup.html'));
 });
 
+// Login page
 app.get('/Login', (req, res) => {
     res.sendFile(path.join(__dirname, 'Login.html'));
 });
 
+// User Home
 app.get('/Home', (req, res) => {
     res.sendFile(path.join(__dirname, 'userhome.html'));
 });
 
+// Donate page
 app.get('/EventRegister', (req, res) => {
     res.sendFile(path.join(__dirname, 'EventRegister.html'));
 });
@@ -60,20 +65,20 @@ app.post('/signup', async (req, res) => {
         const hashed = await bcrypt.hash(password, 10);
 
         await dynamodb.put({
-            TableName: 'Users',
+            TableName: 'Users_d', // ✅ FIXED
             Item: {
                 UserId: uuidv4(),
-                Email: email,
+                email: email,
                 password: hashed,
-                Username: username,
-                Mobile: mobile
+                username: username,
+                mobile: mobile
             }
         }).promise();
 
         res.json({ message: "Signup successful" });
 
     } catch (err) {
-        console.error(err);
+        console.error("Signup Error:", err);
         res.status(500).json({ message: "Signup error" });
     }
 });
@@ -83,14 +88,18 @@ app.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        const data = await dynamodb.scan({ TableName: 'Users' }).promise();
-        const user = data.Items.find(u => u.Email === email);
+        const data = await dynamodb.scan({
+            TableName: 'Users_d' // ✅ FIXED
+        }).promise();
+
+        const user = data.Items.find(u => u.email === email);
 
         if (!user) {
             return res.status(400).json({ message: "User not found" });
         }
 
         const match = await bcrypt.compare(password, user.password);
+
         if (!match) {
             return res.status(400).json({ message: "Wrong password" });
         }
@@ -98,11 +107,11 @@ app.post('/login', async (req, res) => {
         res.json({
             message: "Login success",
             userId: user.UserId,
-            username: user.Username
+            username: user.username
         });
 
     } catch (err) {
-        console.error(err);
+        console.error("Login Error:", err);
         res.status(500).json({ message: "Login error" });
     }
 });
@@ -123,7 +132,7 @@ app.post('/api/donate', upload.single('image'), async (req, res) => {
         };
 
         await dynamodb.put({
-            TableName: 'Donations',
+            TableName: 'Donations_d', // ✅ FIXED
             Item: donation
         }).promise();
 
@@ -135,7 +144,7 @@ app.post('/api/donate', upload.single('image'), async (req, res) => {
         res.json({ message: "Donation added" });
 
     } catch (err) {
-        console.error(err);
+        console.error("Donate Error:", err);
         res.status(500).json({ message: "Donation error" });
     }
 });
@@ -143,9 +152,14 @@ app.post('/api/donate', upload.single('image'), async (req, res) => {
 // ================= GET POSTS =================
 app.get('/api/posts', async (req, res) => {
     try {
-        const data = await dynamodb.scan({ TableName: 'Donations' }).promise();
+        const data = await dynamodb.scan({
+            TableName: 'Donations_d' // ✅ FIXED
+        }).promise();
+
         res.json(data.Items);
+
     } catch (err) {
+        console.error("Fetch Error:", err);
         res.status(500).json({ message: "Error fetching posts" });
     }
 });
@@ -160,7 +174,7 @@ app.post('/api/claim', async (req, res) => {
         };
 
         await dynamodb.put({
-            TableName: 'Claims',
+            TableName: 'Claims_d', // ✅ FIXED
             Item: claim
         }).promise();
 
@@ -172,7 +186,7 @@ app.post('/api/claim', async (req, res) => {
         res.json({ message: "Claim success" });
 
     } catch (err) {
-        console.error(err);
+        console.error("Claim Error:", err);
         res.status(500).json({ message: "Claim error" });
     }
 });
