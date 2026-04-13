@@ -25,7 +25,7 @@ const dynamodb = new AWS.DynamoDB.DocumentClient();
 const sns = new AWS.SNS();
 
 // ✅ Replace with your actual SNS Topic ARN
-const SNS_TOPIC_ARN = "arn:aws:sns:ap-south-1:YOUR_ACCOUNT_ID:StyleCycleNotifications";
+const SNS_TOPIC_ARN = "arn:aws:sns:eu-north-1:367553824826:stylecycle";
 
 // JWT Secret
 const SECRET_KEY = process.env.JWT_SECRET || "default_secret";
