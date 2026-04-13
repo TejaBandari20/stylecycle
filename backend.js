@@ -1,47 +1,34 @@
-// backend.js
 require('dotenv').config();
 
 const express = require('express');
-const bodyParser = require('body-parser');
 const cors = require('cors');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
-
 const AWS = require('aws-sdk');
 
-// ✅ IAM ROLE BASED CONFIG (NO KEYS)
+// ✅ AWS CONFIG (IAM ROLE)
 AWS.config.update({
     region: 'ap-south-1'
 });
 
-// DynamoDB
 const dynamodb = new AWS.DynamoDB.DocumentClient();
-
-// SNS
 const sns = new AWS.SNS();
 
-// ✅ Replace with your actual SNS Topic ARN
-const SNS_TOPIC_ARN = "arn:aws:sns:eu-north-1:367553824826:stylecycle";
+// ✅ FIXED SNS REGION
+const SNS_TOPIC_ARN = "arn:aws:sns:ap-south-1:367553824826:stylecycle";
 
-// JWT Secret
+// JWT
 const SECRET_KEY = process.env.JWT_SECRET || "default_secret";
 
-const PORT = 5000;
 const app = express();
+const PORT = 5000;
 
-// --- Middleware ---
-app.use(cors({
-    origin: [
-        'http://localhost:3000',
-        'http://localhost:5000'
-    ]
-}));
+// ✅ FIXED CORS (ALLOW ALL)
+app.use(cors({ origin: '*' }));
 
-app.use(bodyParser.json());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/static', express.static(path.join(__dirname, 'static')));
@@ -58,14 +45,13 @@ function authenticateUser(req, res, next) {
         return res.status(401).json({ message: 'No token provided' });
     }
 
-    const token = authHeader.replace('Bearer ', '');
-
     try {
-        const decoded = jwt.verify(token, SECRET_KEY, { algorithms: ['HS512'] });
+        const token = authHeader.replace('Bearer ', '');
+        const decoded = jwt.verify(token, SECRET_KEY);
         req.user = decoded;
         next();
-    } catch (error) {
-        return res.status(401).json({ message: 'Invalid or expired token' });
+    } catch {
+        return res.status(401).json({ message: 'Invalid token' });
     }
 }
 
@@ -78,6 +64,10 @@ app.get('/Home', (req, res) => res.sendFile(path.join(__dirname, 'userhome.html'
 // --- SIGNUP ---
 app.post('/signup', async (req, res) => {
     const { email, password, username, mobile } = req.body;
+
+    if (!email || !password || !username || !mobile) {
+        return res.status(400).json({ message: "All fields are required" });
+    }
 
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -96,10 +86,11 @@ app.post('/signup', async (req, res) => {
             Item: newUser
         }).promise();
 
-        res.status(201).json({ message: 'User created successfully' });
+        res.status(201).json({ message: "User created successfully" });
 
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error("Signup Error:", error);
+        res.status(500).json({ message: "Server error" });
     }
 });
 
@@ -108,41 +99,44 @@ app.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        const result = await dynamodb.query({
-            TableName: 'Users',
-            IndexName: 'Email-index',
-            KeyConditionExpression: 'Email = :email',
-            ExpressionAttributeValues: { ':email': email }
+        // ✅ SAFE LOGIN (NO INDEX REQUIRED)
+        const result = await dynamodb.scan({
+            TableName: 'Users'
         }).promise();
 
-        const user = result.Items[0];
+        const user = result.Items.find(u => u.Email === email);
 
         if (!user) {
-            return res.status(400).json({ message: 'Invalid credentials' });
+            return res.status(400).json({ message: "Invalid credentials" });
         }
 
         const match = await bcrypt.compare(password, user.password);
 
         if (!match) {
-            return res.status(400).json({ message: 'Invalid credentials' });
+            return res.status(400).json({ message: "Invalid credentials" });
         }
 
         const token = jwt.sign(
             { userId: user.UserId, username: user.Username },
             SECRET_KEY,
-            { expiresIn: '1h', algorithm: 'HS512' }
+            { expiresIn: '1h' }
         );
 
         res.json({ token });
 
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error("Login Error:", error);
+        res.status(500).json({ message: "Server error" });
     }
 });
 
 // --- DONATE ---
 app.post('/api/donate', authenticateUser, upload.single('image'), async (req, res) => {
     try {
+        if (!req.file) {
+            return res.status(400).json({ message: "Image required" });
+        }
+
         const image = req.file.buffer.toString('base64');
 
         const donation = {
@@ -162,16 +156,17 @@ app.post('/api/donate', authenticateUser, upload.single('image'), async (req, re
             Item: donation
         }).promise();
 
-        // 🔥 SNS NOTIFICATION
+        // SNS Notification
         await sns.publish({
-            Message: `New donation added: ${donation.title}`,
+            Message: `New donation: ${donation.title}`,
             TopicArn: SNS_TOPIC_ARN
         }).promise();
 
-        res.json({ message: 'Donation added', donation });
+        res.json({ message: "Donation added", donation });
 
-    } catch (err) {
-        res.status(500).json({ message: err.message });
+    } catch (error) {
+        console.error("Donate Error:", error);
+        res.status(500).json({ message: "Server error" });
     }
 });
 
@@ -184,8 +179,9 @@ app.get('/api/posts', async (req, res) => {
 
         res.json(data.Items);
 
-    } catch (err) {
-        res.status(500).json({ message: err.message });
+    } catch (error) {
+        console.error("Fetch Error:", error);
+        res.status(500).json({ message: "Server error" });
     }
 });
 
@@ -205,16 +201,16 @@ app.post('/api/claim', authenticateUser, async (req, res) => {
             Item: claim
         }).promise();
 
-        // 🔥 SNS NOTIFICATION
         await sns.publish({
-            Message: `New claim request for donation ID: ${claim.donationId}`,
+            Message: `New claim for donation: ${claim.donationId}`,
             TopicArn: SNS_TOPIC_ARN
         }).promise();
 
-        res.json({ message: 'Claim submitted' });
+        res.json({ message: "Claim submitted" });
 
-    } catch (err) {
-        res.status(500).json({ message: err.message });
+    } catch (error) {
+        console.error("Claim Error:", error);
+        res.status(500).json({ message: "Server error" });
     }
 });
 
