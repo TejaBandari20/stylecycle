@@ -1,5 +1,5 @@
 // backend.js
-require('dotenv').config(); // ✅ Load environment variables
+require('dotenv').config();
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -11,20 +11,24 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 
-// --- AWS SDK ---
 const AWS = require('aws-sdk');
 
-// ✅ SECURE CONFIG (NO HARDCODED KEYS)
+// ✅ IAM ROLE BASED CONFIG (NO KEYS)
 AWS.config.update({
-    region: 'ap-south-1',
-    accessKeyId: process.env.AWS_ACCESS_KEY,
-    secretAccessKey: process.env.AWS_SECRET_KEY
+    region: 'ap-south-1'
 });
 
+// DynamoDB
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 
-// ✅ JWT SECRET FROM ENV
-const SECRET_KEY = process.env.JWT_SECRET;
+// SNS
+const sns = new AWS.SNS();
+
+// ✅ Replace with your actual SNS Topic ARN
+const SNS_TOPIC_ARN = "arn:aws:sns:ap-south-1:YOUR_ACCOUNT_ID:StyleCycleNotifications";
+
+// JWT Secret
+const SECRET_KEY = process.env.JWT_SECRET || "default_secret";
 
 const PORT = 5000;
 const app = express();
@@ -42,9 +46,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/static', express.static(path.join(__dirname, 'static')));
 
-// --- Multer ---
+// Multer
 const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const upload = multer({ storage });
 
 // --- JWT Middleware ---
 function authenticateUser(req, res, next) {
@@ -158,6 +162,12 @@ app.post('/api/donate', authenticateUser, upload.single('image'), async (req, re
             Item: donation
         }).promise();
 
+        // 🔥 SNS NOTIFICATION
+        await sns.publish({
+            Message: `New donation added: ${donation.title}`,
+            TopicArn: SNS_TOPIC_ARN
+        }).promise();
+
         res.json({ message: 'Donation added', donation });
 
     } catch (err) {
@@ -193,6 +203,12 @@ app.post('/api/claim', authenticateUser, async (req, res) => {
         await dynamodb.put({
             TableName: 'Claims',
             Item: claim
+        }).promise();
+
+        // 🔥 SNS NOTIFICATION
+        await sns.publish({
+            Message: `New claim request for donation ID: ${claim.donationId}`,
+            TopicArn: SNS_TOPIC_ARN
         }).promise();
 
         res.json({ message: 'Claim submitted' });
