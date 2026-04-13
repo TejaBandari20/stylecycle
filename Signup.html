@@ -1,63 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ReWear Register</title>
-
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-
-    <style>
-        body {
-            font-family: Arial;
-            background: linear-gradient(135deg, #fefcea, #f1da36);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .signup-container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            width: 350px;
-            text-align: center;
-        }
-
-        input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-        }
-
-        button {
-            width: 100%;
-            padding: 10px;
-            background: black;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-    </style>
-</head>
-
-<body>
-
-<div class="signup-container">
-    <h2>Sign Up</h2>
-
-    <form id="signuppost">
-        <input type="text" id="name" placeholder="Username" required>
-        <input type="email" id="email" placeholder="Email" required>
-        <input type="password" id="password" placeholder="Password" required>
-        <input type="tel" id="mobile" placeholder="Mobile" required>
-
-        <button type="submit">Sign Up</button>
-    </form>
-</div>
-
 <script>
+const API_BASE_URL = "http://51.20.181.96:5000";
+
 document.getElementById('signuppost').addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -66,39 +9,21 @@ document.getElementById('signuppost').addEventListener('submit', async (e) => {
     const password = document.getElementById('password').value;
     const mobile = document.getElementById('mobile').value;
 
-    try {
-        const response = await fetch('http://51.20.181.96:5000/signup', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, email, password, mobile })
-        });
+    const res = await fetch(`${API_BASE_URL}/signup`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ username, email, password, mobile })
+    });
 
-        const text = await response.text();
-        console.log("Server Response:", text);
+    const data = await res.json();
 
-        let data;
-        try {
-            data = JSON.parse(text);
-        } catch {
-            alert("Server error: " + text);
-            return;
-        }
-
-        if (response.ok) {
-            alert("Signup successful ✅");
-            window.location.href = "/Login";
-        } else {
-            alert(data.message || "Signup failed");
-        }
-
-    } catch (error) {
-        console.error(error);
-        alert("Network error. Check server.");
+    if (res.ok) {
+        alert("Signup successful ✅");
+        window.location.href = "/Login";
+    } else {
+        alert(data.message);
     }
 });
 </script>
-
-</body>
-</html>

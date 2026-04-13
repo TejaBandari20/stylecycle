@@ -1,123 +1,155 @@
-// script.js
+const API_BASE_URL = "http://51.20.181.96:5000";
 
-// Helper function to convert ArrayBuffer or Uint8Array to Base64
-function arrayBufferToBase64(buffer) {
-    let binary = '';
-    const bytes = new Uint8Array(buffer);
-    const len = bytes.byteLength;
-    for (let i = 0; i < len; i++) {
-        binary += String.fromCharCode(bytes[i]);
-    }
-    return window.btoa(binary);
-}
+// ================= SIGNUP =================
+const signupForm = document.getElementById("signuppost");
+if (signupForm) {
+    signupForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-// Handles user logout by clearing the token and redirecting to the home page.
-async function logout() {
-    localStorage.removeItem('token');
-    window.location.href = '/';
-}
+        const username = document.getElementById("name").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const mobile = document.getElementById("mobile").value;
 
-// Validates the user's session by sending the JWT to the server.
-async function valid() {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        alert('Session expired. Please log in again.');
-        window.location.href = '/Login';
-        return null;
-    }
-
-    try {
-        const response = await fetch('/valid', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            },
+        const res = await fetch(`${API_BASE_URL}/signup`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, email, password, mobile })
         });
 
-        if (!response.ok) {
-            if (response.status === 401 || response.status === 403) {
-                localStorage.removeItem('token');
-                alert('Session expired. Please log in again.');
-                window.location.href = '/Login';
-            } else {
-                alert(`Error: ${response.statusText}. Please log in again.`);
-                window.location.href = '/Login';
-            }
-            return null;
-        }
+        const data = await res.json();
 
-        return await response.json();
-    } catch (error) {
-        console.error('Error validating session:', error);
-        alert('An error occurred. Please log in again.');
-        window.location.href = '/Login';
-        return null;
-    }
+        if (res.ok) {
+            alert("Signup successful ✅");
+            window.location.href = "/Login";
+        } else {
+            alert(data.message);
+        }
+    });
 }
 
-// Loads and displays all public posts from the server (for userhome.html).
+// ================= LOGIN =================
+const loginForm = document.getElementById("loginForm");
+if (loginForm) {
+    loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        const res = await fetch(`${API_BASE_URL}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            // ✅ Save user locally (NO JWT)
+            localStorage.setItem("userId", data.userId);
+            localStorage.setItem("username", data.username);
+
+            alert("Login successful ✅");
+            window.location.href = "/Home";
+        } else {
+            alert(data.message);
+        }
+    });
+}
+
+// ================= LOAD POSTS =================
 async function loadPosts() {
-    try {
-        // This endpoint now only returns posts where isClaimed is false
-        const response = await fetch('/api/posts');
-        if (!response.ok) throw new Error('Failed to fetch posts');
+    const container = document.getElementById("donationsList");
+    if (!container) return;
 
-        const posts = await response.json();
-        const postsContainer = document.getElementById('posts');
-        if (!postsContainer) {
-            console.warn("Element with ID 'posts' not found. Skipping loadPosts display.");
-            return;
-        }
-        postsContainer.innerHTML = '';
+    const res = await fetch(`${API_BASE_URL}/api/posts`);
+    const posts = await res.json();
 
-        if (posts.length === 0) {
-            postsContainer.innerHTML = '<p style="text-align: center; margin-top: 20px; color: #555;">No public posts available yet.</p>';
-            return;
-        }
+    container.innerHTML = "";
 
-        posts.forEach(post => {
-            const card = document.createElement('div');
-            card.classList.add('post-box');
+    posts.forEach(post => {
+        const div = document.createElement("div");
 
-            const img = document.createElement('img');
-            if (post.image && post.image.data && post.image.contentType) {
-                img.src = `data:${post.image.contentType};base64,${arrayBufferToBase64(post.image.data.data)}`;
-            } else {
-                img.src = 'placeholder.jpg';
-                console.warn('Missing image data for post:', post._id);
-            }
-            img.alt = post.name;
+        div.innerHTML = `
+            <h3>${post.title}</h3>
+            <p>${post.description}</p>
+            <button onclick="claimDonation('${post.donationId}')">Claim</button>
+        `;
 
-            const info = document.createElement('div');
-            info.className = 'info';
-            info.innerHTML = `
-                <h3>${post.name}</h3>
-                <p><strong>Email:</strong> ${post.email}</p>
-                <p><strong>Mobile:</strong> ${post.mobile}</p>
-                <p><strong>Location:</strong> ${post.location}</p>
-                <br>
-            `;
+        container.appendChild(div);
+    });
+}
 
-            // Only show the "Claim" button if the post is NOT claimed
-            if (!post.isClaimed) {
-                info.innerHTML += `<center><a href="/Claimform?donationId=${post._id}" class="button">Claim</a></center>`;
-            } else {
-                // Optionally show a "Claimed" badge on public view, though /api/posts filters these out
-                // This part is mostly for demonstrating the concept if filtering is removed later
-                info.innerHTML += `<div class="claimed-badge">Claimed!</div>`;
-            }
+// ================= CLAIM =================
+async function claimDonation(donationId) {
+    const userId = localStorage.getItem("userId");
 
-            card.appendChild(img);
-            card.appendChild(info);
-            postsContainer.appendChild(card);
-        });
-    } catch (err) {
-        console.error("Error loading public posts:", err);
-        const postsContainer = document.getElementById('posts');
-        if (postsContainer) {
-            postsContainer.innerHTML = '<p style="text-align:center; color:red;">Failed to load posts.</p>';
-        }
+    if (!userId) {
+        alert("Please login first ❌");
+        return;
+    }
+
+    const res = await fetch(`${API_BASE_URL}/api/claim`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            donationId,
+            userId
+        })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+        alert("Claim successful ✅");
+    } else {
+        alert(data.message);
     }
 }
 
-// NOTE: loadMySubmissions is not here. It's in submissions.html now.
+// ================= DONATE =================
+const donationForm = document.getElementById("eventForm");
+if (donationForm) {
+    donationForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const userId = localStorage.getItem("userId");
+
+        if (!userId) {
+            alert("Login first ❌");
+            return;
+        }
+
+        const formData = new FormData();
+
+        formData.append("title", document.getElementById("title").value);
+        formData.append("description", document.getElementById("description").value);
+        formData.append("category", document.getElementById("category").value);
+        formData.append("quantity", document.getElementById("quantity").value);
+        formData.append("image", document.getElementById("image").files[0]);
+
+        // ✅ attach user
+        formData.append("userId", userId);
+
+        const res = await fetch(`${API_BASE_URL}/api/donate`, {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            alert("Donation successful ✅");
+        } else {
+            alert(data.message);
+        }
+    });
+}
+
+// ================= AUTO LOAD =================
+window.onload = () => {
+    loadPosts();
+};

@@ -1,154 +1,105 @@
-require('dotenv').config();
-
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const AWS = require('aws-sdk');
 
-// ✅ AWS CONFIG (IAM ROLE)
-AWS.config.update({
-    region: 'ap-south-1'
-});
+// AWS CONFIG
+AWS.config.update({ region: 'ap-south-1' });
 
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 const sns = new AWS.SNS();
 
-// ✅ FIXED SNS REGION
 const SNS_TOPIC_ARN = "arn:aws:sns:ap-south-1:367553824826:stylecycle";
-
-// JWT
-const SECRET_KEY = process.env.JWT_SECRET || "default_secret";
 
 const app = express();
 const PORT = 5000;
 
-// ✅ FIXED CORS (ALLOW ALL)
-app.use(cors({ origin: '*' }));
-
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/static', express.static(path.join(__dirname, 'static')));
 
-// Multer
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
-
-// --- JWT Middleware ---
-function authenticateUser(req, res, next) {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'No token provided' });
-    }
-
-    try {
-        const token = authHeader.replace('Bearer ', '');
-        const decoded = jwt.verify(token, SECRET_KEY);
-        req.user = decoded;
-        next();
-    } catch {
-        return res.status(401).json({ message: 'Invalid token' });
-    }
-}
-
-// --- Static Routes ---
+// ================= STATIC =================
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'home.html')));
-app.get('/Login', (req, res) => res.sendFile(path.join(__dirname, 'Login.html')));
 app.get('/Signup', (req, res) => res.sendFile(path.join(__dirname, 'Signup.html')));
+app.get('/Login', (req, res) => res.sendFile(path.join(__dirname, 'Login.html')));
 app.get('/Home', (req, res) => res.sendFile(path.join(__dirname, 'userhome.html')));
 
-// --- SIGNUP ---
+// ================= SIGNUP =================
 app.post('/signup', async (req, res) => {
     const { email, password, username, mobile } = req.body;
 
     if (!email || !password || !username || !mobile) {
-        return res.status(400).json({ message: "All fields are required" });
+        return res.status(400).json({ message: "All fields required" });
     }
 
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const newUser = {
-            UserId: uuidv4(),
-            Email: email,
-            Mobile: mobile,
-            password: hashedPassword,
-            Username: username.toLowerCase(),
-            createdAt: new Date().toISOString()
-        };
+        const hashed = await bcrypt.hash(password, 10);
 
         await dynamodb.put({
             TableName: 'Users',
-            Item: newUser
+            Item: {
+                UserId: uuidv4(),
+                Email: email,
+                password: hashed,
+                Username: username,
+                Mobile: mobile
+            }
         }).promise();
 
-        res.status(201).json({ message: "User created successfully" });
+        res.json({ message: "Signup successful" });
 
-    } catch (error) {
-        console.error("Signup Error:", error);
-        res.status(500).json({ message: "Server error" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Error in signup" });
     }
 });
 
-// --- LOGIN ---
+// ================= LOGIN =================
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        // ✅ SAFE LOGIN (NO INDEX REQUIRED)
-        const result = await dynamodb.scan({
-            TableName: 'Users'
-        }).promise();
-
-        const user = result.Items.find(u => u.Email === email);
+        const data = await dynamodb.scan({ TableName: 'Users' }).promise();
+        const user = data.Items.find(u => u.Email === email);
 
         if (!user) {
-            return res.status(400).json({ message: "Invalid credentials" });
+            return res.status(400).json({ message: "User not found" });
         }
 
         const match = await bcrypt.compare(password, user.password);
-
         if (!match) {
-            return res.status(400).json({ message: "Invalid credentials" });
+            return res.status(400).json({ message: "Wrong password" });
         }
 
-        const token = jwt.sign(
-            { userId: user.UserId, username: user.Username },
-            SECRET_KEY,
-            { expiresIn: '1h' }
-        );
+        // 👉 NO JWT → just send user
+        res.json({
+            message: "Login success",
+            userId: user.UserId,
+            username: user.Username
+        });
 
-        res.json({ token });
-
-    } catch (error) {
-        console.error("Login Error:", error);
-        res.status(500).json({ message: "Server error" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Login error" });
     }
 });
 
-// --- DONATE ---
-app.post('/api/donate', authenticateUser, upload.single('image'), async (req, res) => {
+// ================= DONATE =================
+const upload = multer({ storage: multer.memoryStorage() });
+
+app.post('/api/donate', upload.single('image'), async (req, res) => {
     try {
-        if (!req.file) {
-            return res.status(400).json({ message: "Image required" });
-        }
-
-        const image = req.file.buffer.toString('base64');
-
         const donation = {
             donationId: uuidv4(),
-            userId: req.user.userId,
+            userId: req.body.userId, // 👈 from frontend
             title: req.body.title,
             description: req.body.description,
             category: req.body.category,
             quantity: parseInt(req.body.quantity),
-            imageData: image,
-            status: 'available',
-            postedAt: new Date().toISOString()
+            image: req.file.buffer.toString('base64')
         };
 
         await dynamodb.put({
@@ -156,44 +107,32 @@ app.post('/api/donate', authenticateUser, upload.single('image'), async (req, re
             Item: donation
         }).promise();
 
-        // SNS Notification
         await sns.publish({
-            Message: `New donation: ${donation.title}`,
+            Message: `New Donation: ${donation.title}`,
             TopicArn: SNS_TOPIC_ARN
         }).promise();
 
-        res.json({ message: "Donation added", donation });
+        res.json({ message: "Donation added" });
 
-    } catch (error) {
-        console.error("Donate Error:", error);
-        res.status(500).json({ message: "Server error" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Donation error" });
     }
 });
 
-// --- GET POSTS ---
+// ================= GET POSTS =================
 app.get('/api/posts', async (req, res) => {
-    try {
-        const data = await dynamodb.scan({
-            TableName: 'Donations'
-        }).promise();
-
-        res.json(data.Items);
-
-    } catch (error) {
-        console.error("Fetch Error:", error);
-        res.status(500).json({ message: "Server error" });
-    }
+    const data = await dynamodb.scan({ TableName: 'Donations' }).promise();
+    res.json(data.Items);
 });
 
-// --- CLAIM ---
-app.post('/api/claim', authenticateUser, async (req, res) => {
+// ================= CLAIM =================
+app.post('/api/claim', async (req, res) => {
     try {
         const claim = {
             claimId: uuidv4(),
             donationId: req.body.donationId,
-            claimerUserId: req.user.userId,
-            claimStatus: 'pending',
-            claimedAt: new Date().toISOString()
+            userId: req.body.userId
         };
 
         await dynamodb.put({
@@ -202,19 +141,19 @@ app.post('/api/claim', authenticateUser, async (req, res) => {
         }).promise();
 
         await sns.publish({
-            Message: `New claim for donation: ${claim.donationId}`,
+            Message: `New claim for ${claim.donationId}`,
             TopicArn: SNS_TOPIC_ARN
         }).promise();
 
-        res.json({ message: "Claim submitted" });
+        res.json({ message: "Claim success" });
 
-    } catch (error) {
-        console.error("Claim Error:", error);
-        res.status(500).json({ message: "Server error" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Claim error" });
     }
 });
 
-// --- SERVER ---
+// ================= SERVER =================
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on http://0.0.0.0:${PORT}`);
+    console.log(`Server running on ${PORT}`);
 });
